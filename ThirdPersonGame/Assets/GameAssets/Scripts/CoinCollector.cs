@@ -9,11 +9,9 @@ public class CoinCollector : MonoBehaviour
         if (other.CompareTag("Coin"))
         {
             var coin = other.transform.parent.GetComponent<Coin>();
-            coin.DoSmall();
-            Destroy(other.gameObject);
+            coin.DoSmall(() => Destroy(other.gameObject));
 
             _coinStatisticsUI.AddCoin();
-            _coinStatisticsUI.ShowActualTotalCoins();
         }
     }
 }

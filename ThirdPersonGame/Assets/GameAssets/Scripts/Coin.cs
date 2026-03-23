@@ -21,8 +21,9 @@ public class Coin : MonoBehaviour
         }
     }
 
-    public void DoSmall()
+    public void DoSmall(Action completeAction)
     {
-        transform.DOScale(transform.localScale * 0.3f,  1f).SetEase(Ease.InOutSine);
+        transform.DOScale(transform.localScale * 0.5f,  0.2f).SetEase(Ease.InOutSine)
+            .OnComplete(completeAction.Invoke);
     }
 }

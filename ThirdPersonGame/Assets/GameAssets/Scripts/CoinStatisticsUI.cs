@@ -10,9 +10,10 @@ public class CoinStatisticsUI : MonoBehaviour
     public void AddCoin()
     {
         _totalCoins++;
+        ShowActualTotalCoins();
     }
 
-    public void ShowActualTotalCoins()
+    private void ShowActualTotalCoins()
     {
         _coinsNumber.text = _totalCoins.ToString();
     }

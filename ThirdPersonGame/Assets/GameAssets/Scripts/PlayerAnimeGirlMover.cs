@@ -70,9 +70,6 @@ public class PlayerAnimeGirlMover : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (_body == null || _body == transform)
-            return;
-
         var localPosition = _body.localPosition;
         localPosition.y = _bodyStartLocalPosition.y + _visualGroundOffset;
         _body.localPosition = localPosition;
