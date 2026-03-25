@@ -17,7 +17,7 @@ namespace GameAssets.Scripts.DanceBattle
 
         public event Action Failed;
 
-        private void Start()
+        private void Awake()
         {
             ResetState();
             _ring.gameObject.SetActive(false);
