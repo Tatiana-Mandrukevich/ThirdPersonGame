@@ -56,7 +56,6 @@ namespace GameAssets.Scripts.DanceBattle
                 if (Score % SPECIAL_SCORE_VALUE == 0)
                 {
                     _animator.PlaySpecial();
-                    //transform.localPosition = new Vector3(transform.localPosition.x, 0f, transform.localPosition.z);
                 }
             }
         }

@@ -23,10 +23,9 @@ namespace GameAssets.Scripts.DanceBattle
         {
             if (_animator.GetCurrentAnimatorStateInfo(0).IsName("Idle"))
             {
+                //transform.localPosition = new Vector3(transform.localPosition.x, 0f, transform.localPosition.z);
                 _animator.SetTrigger(_specialDances[Random.Range(0, _specialDances.Length)]);
             }
-            
-            //transform.localPosition = new Vector3(transform.localPosition.x, 0f, transform.localPosition.z);
         }
     }
 }
