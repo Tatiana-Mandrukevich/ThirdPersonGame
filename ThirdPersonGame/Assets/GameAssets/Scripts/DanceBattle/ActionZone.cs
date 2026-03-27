@@ -7,49 +7,91 @@ namespace GameAssets.Scripts.DanceBattle
 {
     public class ActionZone : MonoBehaviour
     {
-        private const float ANIMATION_DURATION = 3f;
-        private const float START_SCALE = 1.75f;
-        private const float END_SCALE = 0.8f;
-        
         [SerializeField] private Image _ring;
+        [SerializeField] private Image _innerCircle;
+        [SerializeField] private ActionZoneSettings _settings;
+        [SerializeField] private GameObject _successParticles;
+        [SerializeField] private GameObject _failParticles;
         
-        private Tweener _tween;
+        private Sequence _sequence;
+        private Action _failed;
+        private float _startTime;
 
-        public event Action Failed;
+        public bool IsFailed { get; private set; }
 
-        private void Awake()
+        public void Init(Action failed)
         {
+            _failed = failed;
+        }
+
+        public bool CheckReady()
+        {
+            return (Time.time - _startTime > _settings.PlayThreshold) && !IsFailed;
+        }
+
+        private void Start()
+        {
+            _successParticles.SetActive(false);
+            _failParticles.SetActive(false);
             ResetState();
-            _ring.gameObject.SetActive(false);
         }
 
         private void ResetState()
         {
-            _ring.transform.localScale = new Vector3(1, 1, 1) * START_SCALE;
-            _ring.color = Color.white;
+            _innerCircle.color = _settings.DefaultInnerCircleColor;
+            IsFailed = false;
+            _ring.transform.localScale = new Vector3(1, 1, 1) * _settings.StartScale;
+            _ring.color = _settings.DefaultRingColor;
+            _ring.gameObject.SetActive(false);
         }
 
+        [ContextMenu("Play Start Animation")]
         public void PlayStartAnimation()
         {
             ResetState();
             _ring.gameObject.SetActive(true);
-            _tween?.Kill();
-            _tween = _ring.transform.DOScale(END_SCALE, ANIMATION_DURATION)
+            _startTime = Time.time;
+            _sequence?.Kill();
+            _sequence = DOTween.Sequence();
+            _sequence.Append(_ring.transform
+                .DOScale(_settings.EndScale, _settings.AnimationDuration))
+                .InsertCallback(_settings.PlayThreshold, () => _innerCircle.color = _settings.ReadyStateInnerCircleColor)
                 .OnComplete(OnAnimationComplete);
         }
         
-        public void PlayPressedAnimation()
+        public void PlaySuccessAnimation()
         {
-            if (_tween != null)
+            if (_sequence != null)
             {
-                _tween.Kill();
-                _tween = _ring.DOColor(Color.green, 0.3f);
+                _sequence.Kill();
+                _sequence = DOTween.Sequence();
+                _sequence.Append(_ring.DOColor(_settings.SuccessColor, _settings.ResultAnimationDuration))
+                    .Append(_ring.DOFade(0f, _settings.FadeDuration))
+                    .AppendCallback(() => _successParticles.SetActive(true))
+                    .AppendInterval(2)
+                    .AppendCallback(() => _successParticles.SetActive(false))
+                    .OnComplete(ResetState);
             }
+        }
+        
+        public void PlayFailedAnimation()
+        {
+            _sequence.Kill();
+            _sequence = DOTween.Sequence();
+            _sequence.Append(_ring.DOColor(_settings.FailColor, _settings.ResultAnimationDuration))
+                .Append(_ring.DOFade(0f, _settings.FadeDuration))
+                .AppendCallback(() => _failParticles.SetActive(true))
+                .AppendInterval(2)
+                .AppendCallback(() => _failParticles.SetActive(false))
+                .OnComplete(ResetState);
         }
 
         private void OnAnimationComplete()
         {
-            Failed?.Invoke();
+            _innerCircle.color = _settings.DefaultInnerCircleColor;
+            _failParticles.SetActive(true);
+            IsFailed = true;
+            _failed?.Invoke();
         }
     }
 }
