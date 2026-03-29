@@ -51,6 +51,12 @@ namespace GameAssets.Scripts.DanceBattle
 
             while (true)
             {
+                if (_animator.IsSpecialDancePlaying())
+                {
+                    yield return null;
+                    continue;
+                }
+
                 if (elapsedTime >= repeatTime)
                 {
                     _zones[Random.Range(0, _zones.Length)].PlayStartAnimation();
