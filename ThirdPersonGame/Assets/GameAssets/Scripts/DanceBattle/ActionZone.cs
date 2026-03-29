@@ -31,13 +31,12 @@ namespace GameAssets.Scripts.DanceBattle
 
         private void Start()
         {
-            _successParticles.SetActive(false);
-            _failParticles.SetActive(false);
             ResetState();
         }
 
         private void ResetState()
         {
+            HideAllParticles();
             _innerCircle.color = _settings.DefaultInnerCircleColor;
             IsFailed = false;
             _ring.transform.localScale = new Vector3(1, 1, 1) * _settings.StartScale;
@@ -61,37 +60,57 @@ namespace GameAssets.Scripts.DanceBattle
         
         public void PlaySuccessAnimation()
         {
-            if (_sequence != null)
-            {
-                _sequence.Kill();
-                _sequence = DOTween.Sequence();
-                _sequence.Append(_ring.DOColor(_settings.SuccessColor, _settings.ResultAnimationDuration))
-                    .Append(_ring.DOFade(0f, _settings.FadeDuration))
-                    .AppendCallback(() => _successParticles.SetActive(true))
-                    .AppendInterval(2)
-                    .AppendCallback(() => _successParticles.SetActive(false))
-                    .OnComplete(ResetState);
-            }
+            _sequence?.Kill();
+            _sequence = DOTween.Sequence();
+            _sequence.Append(_ring.DOColor(_settings.SuccessColor, _settings.ResultAnimationDuration))
+                .Append(_ring.DOFade(0f, _settings.FadeDuration))
+                .AppendCallback(() => RestartParticles(_successParticles))
+                .AppendInterval(2)
+                .AppendCallback(() => SetParticlesActive(_successParticles, false))
+                .OnComplete(ResetState);
         }
         
         public void PlayFailedAnimation()
         {
-            _sequence.Kill();
+            _sequence?.Kill();
             _sequence = DOTween.Sequence();
             _sequence.Append(_ring.DOColor(_settings.FailColor, _settings.ResultAnimationDuration))
                 .Append(_ring.DOFade(0f, _settings.FadeDuration))
-                .AppendCallback(() => _failParticles.SetActive(true))
+                .AppendCallback(() => RestartParticles(_failParticles))
                 .AppendInterval(2)
-                .AppendCallback(() => _failParticles.SetActive(false))
+                .AppendCallback(() => SetParticlesActive(_failParticles, false))
                 .OnComplete(ResetState);
         }
 
         private void OnAnimationComplete()
         {
             _innerCircle.color = _settings.DefaultInnerCircleColor;
-            _failParticles.SetActive(true);
+            RestartParticles(_failParticles);
             IsFailed = true;
             _failed?.Invoke();
+        }
+
+        private void HideAllParticles()
+        {
+            SetParticlesActive(_successParticles, false);
+            SetParticlesActive(_failParticles, false);
+        }
+
+        private static void SetParticlesActive(GameObject particles, bool isActive)
+        {
+            particles.SetActive(isActive);
+        }
+
+        private static void RestartParticles(GameObject particles)
+        {
+            particles.SetActive(false);
+            particles.SetActive(true);
+
+            foreach (var particleSystem in particles.GetComponentsInChildren<ParticleSystem>(true))
+            {
+                particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                particleSystem.Play(true);
+            }
         }
     }
 }
