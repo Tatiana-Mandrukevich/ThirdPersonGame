@@ -105,12 +105,6 @@ namespace GameAssets.Scripts.DanceBattle
         {
             particles.SetActive(false);
             particles.SetActive(true);
-
-            foreach (var particleSystem in particles.GetComponentsInChildren<ParticleSystem>(true))
-            {
-                particleSystem.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
-                particleSystem.Play(true);
-            }
         }
     }
 }
