@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Data;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -14,6 +15,8 @@ namespace GameAssets.Scripts.DanceBattle
         [SerializeField] private InputService _inputService;
         [SerializeField] private ActionZone[] _zones;
         [SerializeField] private GameObject _particles;
+        [SerializeField] private AudioSource _audioSource;
+        [SerializeField] private ClipData[] _clipData;
         
         private int _score;
         
@@ -45,11 +48,16 @@ namespace GameAssets.Scripts.DanceBattle
 
         private IEnumerator TestGame()
         {
-            var repeatInterval = new Vector2(2, 4);
+            var clipData = _clipData[Random.Range(0, _clipData.Length)];
+            _audioSource.clip = clipData.Clip;
+            _audioSource.Play();
+
             float repeatTime = 0;
             float elapsedTime = 0;
-
-            while (true)
+            int index = 0;
+            float clipDuration = clipData.Clip.length;
+            
+            while (elapsedTime <= clipDuration)
             {
                 if (_animator.IsSpecialDancePlaying())
                 {
@@ -57,16 +65,23 @@ namespace GameAssets.Scripts.DanceBattle
                     continue;
                 }
 
-                if (elapsedTime >= repeatTime)
+                if (index < clipData.Times.Length)
                 {
-                    _zones[Random.Range(0, _zones.Length)].PlayStartAnimation();
-                    repeatTime = Random.Range(repeatInterval.x, repeatInterval.y);
-                    elapsedTime = 0;
+                    float timeMarker =  clipData.Times[index];
+                    
+                    if (elapsedTime >= timeMarker)
+                    {
+                        Debug.Log($"{index}: {timeMarker} - {clipData.Times[index]}");
+                        index++;
+                        _zones[Random.Range(0, _zones.Length)].PlayStartAnimation();
+                    }
                 }
                 
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
+            
+            Debug.Log("Finished!");
         }
 
         private void HandleFail(int index)
@@ -109,6 +124,84 @@ namespace GameAssets.Scripts.DanceBattle
         {
             int index = number - 1;
             return _zones[index].CheckReady();
+        }
+
+        private void TestException1()
+        {
+            
+            var thirdPartService = new ThirdPartService();
+
+            try
+            {
+                thirdPartService.DoAction1();
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Exception: " + e.Message);
+                //throw;
+            }
+
+            int index = 2;
+
+            try
+            {
+                thirdPartService.DoAction2(index);
+            }
+            catch (IndexOutOfRangeException e)
+            {
+                string data = "";
+
+                foreach (object key in e.Data.Keys)
+                {
+                    data += $"{key}: {e.Data[key]}\n";
+                }
+                
+                Debug.LogError($"Index: {e.Data["Index"]}\n" +
+                               $"StackTrace: {e.StackTrace}" +
+                               $"Data: \n{data}");
+            }
+            catch (NullReferenceException e)
+            {
+                Debug.LogError("Null reference exception: " + e);
+            }
+        }
+
+        private async void TestException2()
+        {
+            var thirdPartService = new ThirdPartService();
+            int index = 3;
+
+            try
+            {
+                await thirdPartService.LoadScene(index);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError("Failed to load scene: " + e);
+                throw;
+            }
+            finally
+            {
+               thirdPartService.StopLoading();
+            }
+        }
+        
+        private async void TestException3()
+        {
+            int index = 3;
+
+            using (var thirdPartService = new ThirdPartService())
+            {
+                try
+                {
+                    await thirdPartService.LoadScene(index);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError("Failed to load scene: " + e);
+                    throw;
+                }
+            }
         }
     }
 }
