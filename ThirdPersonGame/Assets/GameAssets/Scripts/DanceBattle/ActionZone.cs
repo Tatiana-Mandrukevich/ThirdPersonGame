@@ -16,8 +16,10 @@ namespace GameAssets.Scripts.DanceBattle
         private Sequence _sequence;
         private Action _failed;
         private float _startTime;
+        private bool _isStartAnimationPlaying;
 
         public bool IsFailed { get; private set; }
+        public bool IsStartAnimationPlaying => _isStartAnimationPlaying;
 
         public void Init(Action failed)
         {
@@ -39,6 +41,7 @@ namespace GameAssets.Scripts.DanceBattle
             HideAllParticles();
             _innerCircle.color = _settings.DefaultInnerCircleColor;
             IsFailed = false;
+            _isStartAnimationPlaying = false;
             _ring.transform.localScale = new Vector3(1, 1, 1) * _settings.StartScale;
             _ring.color = _settings.DefaultRingColor;
             _ring.gameObject.SetActive(false);
@@ -48,6 +51,7 @@ namespace GameAssets.Scripts.DanceBattle
         public void PlayStartAnimation()
         {
             ResetState();
+            _isStartAnimationPlaying = true;
             _ring.gameObject.SetActive(true);
             _startTime = Time.time;
             _sequence?.Kill();
@@ -61,6 +65,7 @@ namespace GameAssets.Scripts.DanceBattle
         public void PlaySuccessAnimation()
         {
             _sequence?.Kill();
+            _isStartAnimationPlaying = false;
             _sequence = DOTween.Sequence();
             _sequence.Append(_ring.DOColor(_settings.SuccessColor, _settings.ResultAnimationDuration))
                 .Append(_ring.DOFade(0f, _settings.FadeDuration))
@@ -73,6 +78,7 @@ namespace GameAssets.Scripts.DanceBattle
         public void PlayFailedAnimation()
         {
             _sequence?.Kill();
+            _isStartAnimationPlaying = false;
             _sequence = DOTween.Sequence();
             _sequence.Append(_ring.DOColor(_settings.FailColor, _settings.ResultAnimationDuration))
                 .Append(_ring.DOFade(0f, _settings.FadeDuration))
@@ -87,6 +93,7 @@ namespace GameAssets.Scripts.DanceBattle
             _innerCircle.color = _settings.DefaultInnerCircleColor;
             RestartParticles(_failParticles);
             IsFailed = true;
+            _isStartAnimationPlaying = false;
             _failed?.Invoke();
         }
 
