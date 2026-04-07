@@ -73,15 +73,13 @@ namespace GameAssets.Scripts.DanceBattle
                     {
                         //Debug.Log($"{index}: {timeMarker} - {clipData.Times[index]}");
                         index++;
-                        ActionZone zone;
-                        int attempts = 0;
-                        do
+                        
+                        // Коллекция зон, которые готовы к воспроизведению анимации
+                        var availableZones = System.Array.FindAll(_zones, zone => !zone.IsStartAnimationPlaying);
+                        
+                        if (availableZones.Length > 0)
                         {
-                            zone = _zones[Random.Range(0, _zones.Length)];
-                            attempts++;
-                        } while (zone.IsStartAnimationPlaying && attempts < _zones.Length * 2);
-                        if (!zone.IsStartAnimationPlaying)
-                        {
+                            ActionZone zone = availableZones[Random.Range(0, availableZones.Length)];
                             zone.PlayStartAnimation();
                         }
                     }
