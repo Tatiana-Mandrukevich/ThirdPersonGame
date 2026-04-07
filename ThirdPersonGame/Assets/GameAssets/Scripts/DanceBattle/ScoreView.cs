@@ -11,6 +11,8 @@ namespace GameAssets.Scripts.DanceBattle
         private void OnEnable()
         {
             _gameCore.ScoreChanged += OnScoreChanged;
+            
+            SetCurrentScore();
         }
 
         private void OnDisable()
@@ -21,6 +23,11 @@ namespace GameAssets.Scripts.DanceBattle
         private void OnScoreChanged(int value)
         {
             _score.text = value.ToString();
+        }
+
+        private void SetCurrentScore()
+        {
+            _score.text = _gameCore.Score.ToString();
         }
     }
 }

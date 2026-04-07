@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Data;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -17,15 +16,16 @@ namespace GameAssets.Scripts.DanceBattle
         [SerializeField] private GameObject _particles;
         [SerializeField] private AudioSource _audioSource;
         [SerializeField] private ClipData[] _clipData;
+        [SerializeField] private GameObject _gameResult;
         
         private int _score;
         
         public event Action<int> ScoreChanged;
 
-        private int Score
+        public int Score
         {
             get => _score;
-            set
+            private set
             {
                 _score = value;
                 ScoreChanged?.Invoke(value);
@@ -36,6 +36,7 @@ namespace GameAssets.Scripts.DanceBattle
         {
             Score = 0;
             _particles.SetActive(false);
+            _gameResult.SetActive(false);
 
             for (int i = 0; i < _zones.Length; i++)
             {
@@ -51,8 +52,7 @@ namespace GameAssets.Scripts.DanceBattle
             var clipData = _clipData[Random.Range(0, _clipData.Length)];
             _audioSource.clip = clipData.Clip;
             _audioSource.Play();
-
-            float repeatTime = 0;
+            
             float elapsedTime = 0;
             int index = 0;
             float clipDuration = clipData.Clip.length;
@@ -71,17 +71,30 @@ namespace GameAssets.Scripts.DanceBattle
                     
                     if (elapsedTime >= timeMarker)
                     {
-                        Debug.Log($"{index}: {timeMarker} - {clipData.Times[index]}");
+                        //Debug.Log($"{index}: {timeMarker} - {clipData.Times[index]}");
                         index++;
-                        _zones[Random.Range(0, _zones.Length)].PlayStartAnimation();
+                        
+                        // Коллекция зон, которые готовы к воспроизведению анимации
+                        var availableZones = System.Array.FindAll(_zones, zone => !zone.IsStartAnimationPlaying);
+                        
+                        if (availableZones.Length > 0)
+                        {
+                            ActionZone zone = availableZones[Random.Range(0, availableZones.Length)];
+                            zone.PlayStartAnimation();
+                        }
                     }
                 }
-                
+                else
+                {
+                    yield return new WaitForSeconds(5f);
+                    break;
+                }
+
                 elapsedTime += Time.deltaTime;
                 yield return null;
             }
             
-            Debug.Log("Finished!");
+            _gameResult.SetActive(true);
         }
 
         private void HandleFail(int index)
